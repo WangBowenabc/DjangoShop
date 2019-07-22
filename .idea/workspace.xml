@@ -2,6 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="04baea7a-340a-41c1-9b7e-aa00db579f56" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/FreshShop/Store/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FreshShop/Store/admin.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FreshShop/Store/apps.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FreshShop/Store/migrations/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FreshShop/Store/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FreshShop/Store/tests.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FreshShop/Store/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -101,12 +108,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1563761941718</updated>
-      <workItem from="1563761947698" duration="632000" />
+      <workItem from="1563761947698" duration="1235000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="632000" />
+    <option name="totallyTimeSpent" value="1235000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1616" height="876" extended-state="6" />
