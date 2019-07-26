@@ -67,16 +67,6 @@ def login(request):
     return response
 @loginValid
 def index(request):
-    # user_id = request.COOKIES.get("user_id")
-    # if user_id:
-    #     user_id = int(user_id)
-    # else:
-    #     user_id = 0
-    # store = Store.objects.filter(user_id=user_id).first()
-    # if store:
-    #     is_store = 1
-    # else:
-    #     is_store = 0
     return render(request, "store/index.html")
 # Create your views here.
 def base(request):
@@ -117,6 +107,7 @@ def register_store(request):
     return render(request,"store/register_store.html",locals())
 @loginValid
 def add_goods(request):
+    goodstypelist = GoodsType.objects.all()
     if request.method=="POST":
         post_data=request.POST#接收post数据
         goods_name=post_data.get("goods_name")
@@ -127,6 +118,7 @@ def add_goods(request):
         goods_safeDate = post_data.get("goods_safeDate")
         goods_image=request.FILES.get("goods_image")
         # store_id = post_data.get("store_id")
+        goods_type = post_data.get("type")
         store_id = request.COOKIES.get("has_store")
         #保存多对多数据
         goods=Goods()
@@ -137,21 +129,25 @@ def add_goods(request):
         goods.goods_date = goods_date
         goods.goods_safeDate = goods_safeDate
         goods.goods_image = goods_image
+        goods_type = GoodsType.objects.get(id=int(goods_type))  # 查询对应类型一对多数据保存
+        goods.goods_type = goods_type
         goods.save()#保存生成了数据库当中的一条数据
         #多对多字段单独再保存一次数据
-        a=Store.objects.get(id=int(store_id))
-        print(a)
         goods.store_id.add(
             Store.objects.get(id=int(store_id))
-
         )
         goods.save()
-    return render(request, "store/add_goods.html")
+        return HttpResponseRedirect("/Store/list_goods/up")
+    return render(request, "store/add_goods.html",locals())
 @loginValid
-def list_goods(request):
+def list_goods(request,state):
     #在获取商品列表之前，
     # 先获取到通过get方式获取到keywords和当前页码，
     # 无操作时，默认页码为1,关键字为空
+    if state=="up":
+        state_num=1
+    else:
+        state_num=0
     keywords=request.GET.get("keywords","")
     page_num=request.GET.get("page_num",1)
     store_id=request.COOKIES.get("has_store")
@@ -159,16 +155,16 @@ def list_goods(request):
     #如果存在关键词，查询包含关键字的商品信息
     if keywords:
         # 查询商品表中名称包含keywords的商品，反向查询，多键在goods中
-        goods_list=store.goods_set.filter(goods_name__contains=keywords)
+        goods_list=store.goods_set.filter(goods_name__contains=keywords,goods_under=state_num)
     #若不存在，则查询所有商品的信息
     else:
-        goods_list=store.goods_set.all()
+        goods_list=store.goods_set.filter(goods_under=state_num)
     # 将查询出来的商品设置为每页最多显示3条信息
     paginator=Paginator(goods_list,3)
     #选择页码对应的页
     page=paginator.page(int(page_num))
     page_range=paginator.page_range
-    return render(request, "store/goods_list.html",{"keywords":keywords,"page":page,"page_range":page_range})
+    return render(request, "store/goods_list.html",{"keywords":keywords,"page":page,"page_range":page_range,"state":state})
 @loginValid
 def goods(request,goods_id):
     #通过传入的goods_id来查询对应id的商品并显示详情
@@ -200,3 +196,51 @@ def update_goods(request,goods_id):
         goods.save()
         return  HttpResponseRedirect('/Store/goods/%s/'% goods_id)
     return render(request,"store/update_goods.html",locals())
+def set_goods(request,state):
+    if state=="up":
+        state_num=1
+    else:
+        state_num=0
+    id = request.GET.get("id")
+    referer=request.META.get("HTTP_REFERER")
+    if id:
+        goods=Goods.objects.filter(id=id).first()
+        if state_num=="delete":
+            goods.delete()
+        else:
+            goods.goods_under=state_num
+            goods.save()
+    return HttpResponseRedirect(referer)
+def logout(request):
+    response=HttpResponseRedirect("/Store/login/")
+    for key in request.COOKIES:
+        response.delete_cookie(key)
+    return response
+@loginValid
+def list_goodstype(request):
+    goodstypelist = GoodsType.objects.all()
+    if request.method=="POST":
+        name=request.POST.get("name")
+        description = request.POST.get("description")
+        picture = request.FILES.get("picture")
+        # page_num = request.GET.get("page_num", 1)
+        goodstype=GoodsType()
+        goodstype.name=name
+        goodstype.description=description
+        goodstype.picture=picture
+        goodstype.save()
+        # store_id = request.COOKIES.get("has_store")
+        # goodstypelist = goodstypelist.
+        # paginator = Paginator(goodstype, 3)
+        # # 选择页码对应的页
+        # page = paginator.page(int(page_num))
+        # page_range = paginator.page_range
+        return HttpResponseRedirect("/Store/list_goodstype")
+
+    return render(request, "store/list_goodstype.html",locals())
+@loginValid
+def delete_type(request):
+    type_id=request.GET.get("id")
+    type=GoodsType.objects.filter(id=type_id).delete()
+    return HttpResponseRedirect('/Store/list_goodstype')
+

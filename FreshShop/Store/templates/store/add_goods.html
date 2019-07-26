@@ -30,6 +30,13 @@
         <input type="hidden" class="form-control form-control-user" name="store_id" value="{{ request.COOKIES.has_store }}">
         </div>
         <div class="form-group">
+            <select name="type" class="form-control form-control-user">
+                {% for t in goodstypelist %})
+                    <option value="{{t.id}}">{{t.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
           <input type="submit" class="btn btn-primary btn-user btn-block" value="添加商品">
         </div>
     </form>

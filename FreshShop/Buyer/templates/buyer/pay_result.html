@@ -1,0 +1,23 @@
+{% extends "buyer/base.html" %}
+
+{% block content %}
+    <div style="margin:auto 300px;overflow:hidden;">
+        <table class="table table-condensed" >
+            <tr>
+                <td colspan="2" rowspan="2"><font size="23px" color="#ff8c00" >恭喜，支付成功</font></td>
+
+            </tr>
+            <tr>
+                <td colspan="2"><font size="5px">支付订单：{{ request.GET.out_trade_no}}</font></td>
+
+            </tr>
+            <tr>
+                <td colspan="2"><font size="5px">支付金额：{{ request.GET.total_amount}}</font></td>
+
+            </tr>
+            <tr>
+                <td colspan="2"><font size="5px">支付订单：{{ request.GET.timestamp}}</font></td>
+            </tr>
+        </table>
+    </div>
+{% endblock %}

@@ -69,11 +69,20 @@
                 <div class="bg-white py-2 collapse-inner rounded">
                     <h6 class="collapse-header">Custom Components:</h6>
                     <a class="collapse-item" href="/Store/add_goods/">商品添加</a>
-                    <a class="collapse-item" href="/Store/list_goods">商品详情</a>
-                    <a class="collapse-item" href="cards.html">商品管理</a>
+                    <a class="collapse-item" href="/Store/list_goods/up/">在售商品列表</a>
+                    <a class="collapse-item" href="/Store/list_goods/down/">下架商品列表</a>
+
                 </div>
+
             </div>
         </li>
+         <li class="nav-item">
+          <a class="nav-link collapsed" href="/Store/list_goodstype/">
+                <i class="fas fa-fw fa-cog"></i>
+                <span>商品类型管理</span>
+            </a>
+        </li>
+
         <!-- Divider -->
         <hr class="sidebar-divider d-none d-md-block">
 
@@ -380,7 +389,7 @@
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login.html">Logout</a>
+                    <a class="btn btn-primary" href="/Store/logout/">Logout</a>
                 </div>
             </div>
         </div>
