@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Manager
 
 # Create your models here.
 class Seller(models.Model):
@@ -22,10 +23,24 @@ class Store(models.Model):
     store_money=models.FloatField(verbose_name="店铺注册资金")
     user_id=models.IntegerField(verbose_name="店铺主人")
     type=models.ManyToManyField(to=StoreType,verbose_name="店铺类型")
+#
+# import datetime
+# class GoodsTypeManage(Manager):
+#     def addType(self,name,picture="buyer/images/page_1_25.jpg"):
+#         goods_type=GoodsType()
+#         goods_type.name=name
+#         now=datetime.datetime.now().strftime("%Y-%m-%d")
+#         goods_type.description="%s_%s"%(now,name)
+#         goods_type.picture=picture
+#         goods_type.save()
+#         return goods_type
+
 class GoodsType(models.Model):
    name=models.CharField(max_length=32,verbose_name="商品类型名称")
    description=models.TextField(max_length=32,verbose_name="商品类型描述")
    picture=models.ImageField(upload_to="buyer/images")
+   # object=GoodsTypeManage()
+
 class Goods(models.Model):
     goods_name=models.CharField(max_length=32,verbose_name="商品名称")
     goods_price=models.FloatField(verbose_name="商品价格")
@@ -35,7 +50,7 @@ class Goods(models.Model):
     goods_date=models.DateField(verbose_name="出厂日期")
     goods_safeDate=models.IntegerField(verbose_name="保质期")
     goods_under=models.IntegerField(verbose_name="商品状态",default=1)
-    store_id=models.ManyToManyField(to=Store,verbose_name="商品店铺")
+    store_id=models.ForeignKey(to=Store,verbose_name="商品店铺",on_delete=models.CASCADE)
     goods_type=models.ForeignKey(to=GoodsType,on_delete=models.CASCADE,verbose_name="商品类型",default=1)
 
 class GoodsImg(models.Model):

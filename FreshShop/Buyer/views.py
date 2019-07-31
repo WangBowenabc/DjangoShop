@@ -1,6 +1,9 @@
+import time
+from django.db.models import Sum
 from django.shortcuts import render
+from django.http import JsonResponse
+from django.shortcuts import HttpResponse
 from django.shortcuts import HttpResponseRedirect
-
 from Buyer.models import *
 from Store.views import set_password
 from Store.models import *
@@ -38,7 +41,6 @@ def login(request):
                     response.set_cookie("user_id", user.id)
                     return response
     return render(request, "buyer/login.html")
-
 
 def register(request):
     if request.method == "POST":
@@ -98,11 +100,6 @@ def good_list(request):
         #将查询结果通过locals()传递到goos_list.html供其做前端数据渲染
     return render(request, "buyer/goods_list.html", locals())
 
-
-
-
-
-
 def pay_result(request):
     return render(request, "buyer/pay_result.html", locals())
 def pay_order(request):
@@ -131,4 +128,143 @@ def pay_order(request):
         return_url="http://127.0.0.1:8000/Buyer/pay_result/",
         notify_url="http://127.0.0.1:8000/Buyer/pay_result/"
     )
+    order=Order.objects.get(order_id=order_id)
+    order.order_status=2
+    order.save()
     return HttpResponseRedirect("https://openapi.alipaydev.com/gateway.do?" + order_string)
+def user_order(request):
+    return render(request,"buyer/user_center_order.html")
+def user_site(request):
+    return render(request,"buyer/user_center_site.html")
+def user_info(request):
+    return render(request,"buyer/user_center_info.html")
+def detail(request):
+    # '''
+    #    商品列表页的数据展示，显示对应类型的商品列表信息
+    #    '''
+    # good_list =Goods.objects.all()
+    # # 通过前端点击查看更多，传入该商品类型的id，type_id参数通过get方式传递到view
+    # id = request.GET.get("id")
+    # # 通过传入的type_id来查询该类型对象
+    # goods = Goods.objects.filter(id=id).first()
+    #
+    # return render(request,"buyer/detail.html",locals())
+    id = request.GET.get("id")
+    if id:
+        goods=Goods.objects.filter(id=id).first()
+        if goods:
+            return render(request,"buyer/detail.html",locals())
+    return HttpResponseRedirect("没有指定的商品")
+def setOrder(user_id,goods_id,store_id):
+    #格式化订单编号
+    strtime=time.strftime("%Y%m%d%H%M%S",time.localtime())
+    order_id=strtime+str(user_id)+str(goods_id)
+    return order_id
+def place_order(request):
+    if request.method=="POST":
+        count=int(request.POST.get("count"))
+        goods_id=request.POST.get("goods_id")
+        user_id=request.COOKIES.get("user_id")
+        goods=Goods.objects.get(id=goods_id)
+        store_id=goods.store_id.id #*******
+        price=goods.goods_price
+        order=Order()
+        order.order_id=setOrder(str(user_id),str(goods_id),str(store_id))
+        order.goods_count=count
+        order.order_user=Buyer.objects.get(id=user_id)
+        order.order_price=count*price
+        order.save()
+        order_detail=OrderDetail()
+        order_detail.order_id=order#******
+        order_detail.goods_id=goods_id
+        order_detail.goods_name=goods.goods_name
+        order_detail.goods_price=goods.goods_price
+        order_detail.goods_number=count
+        order_detail.goods_total=count*goods.goods_price
+        order_detail.goods_store=store_id
+        order_detail.goods_image=goods.goods_image
+        order_detail.save()
+
+        detail=[order_detail]
+        return render(request,"buyer/place_order.html",locals())
+    else:
+        order_id=request.GET.get("order_id")
+        if order_id:
+            order=Order.objects.get(id=order_id)
+            detail=order.orderdetail_set.all()
+            return render(request,"buyer/place_order.html",locals())
+        else:
+            return HttpResponse("非法请求")
+def cart(request):
+    user_id=request.COOKIES.get("user_id")
+    goods_list=Cart.objects.filter(user_id=user_id)
+    if request.method=="POST":
+        post_data=request.POST
+        cart_data=[]#收集从前端传递过来的商品
+        for k,v in post_data.items():
+            if k.startswith("goods_"):
+                cart_data.append(Cart.objects.get(id = int(v)))
+        goods_count=len(cart_data)#提交过来的数据总的数量
+        #订单总价
+        goods_total=sum([int(i.goods_total)for i in cart_data])
+        # #修改使用聚类查询返回指定商品的总价
+        # 1.查询到所有商品
+        # cart_data=[]#收集前端传递过来的商品id
+        # for k,v in post_data.items():
+        #     if k.startswith("goods_"):
+        #         cart_data.append(int(v))
+        #         #使用in方法进行范围划定，然后使用sum方法进行计算
+        # cart_goods=Cart.objects.filter(id__in=cart_data).aggregate(Sum("goods_total"))
+        # print(cart_goods)
+        #保存订单
+        order=Order()
+        #订单中有多个商品或多个店铺使用goods_count来代替商品id,用2代替店铺id
+        order.order_id=setOrder(user_id,goods_count,"2")
+        order.goods_count=goods_count
+        order.order_user=Buyer.objects.get(id=user_id)
+        order.order_price=int(goods_total)
+        order.order_status=1
+        order.save()
+        #保存订单详情
+        #这里的detail是购物车里的数据实例，不是商品实例
+        for detail in cart_data:
+            order_detail=OrderDetail()
+            order_detail.order_id=order
+            order_detail.goods_id=detail.goods_id
+            order_detail.goods_name=detail.goods_name
+            order_detail.goods_price=detail.goods_price
+            order_detail.goods_number=detail.goods_number
+            order_detail.goods_total=detail.goods_total
+            order_detail.goods_store=detail.goods_store
+            order_detail.goods_image=detail.goods_picture
+            order_detail.save()
+            #order 是一条订单支付页
+        url="/Buyer/place_order/?order_id=%s"%order.id
+        return HttpResponseRedirect(url)
+    return render(request,"buyer/cart.html",locals())
+def add_cart(request):
+    result = {"state": "error", "data": ""}
+    if request.method == "POST":
+        count = int(request.POST.get("count"))
+        goods_id = request.POST.get("goods_id")
+        goods = Goods.objects.get(id=int(goods_id))
+        user_id = request.COOKIES.get("user_id")
+        cart = Cart()
+        cart.goods_name = goods.goods_name
+        cart.goods_price = goods.goods_price
+        cart.goods_total =goods.goods_price * count
+        cart.goods_number = count
+        cart.goods_picture = goods.goods_image
+        cart.goods_id = goods.id
+        cart.goods_store = goods.store_id.id
+        cart.user_id = user_id
+        cart.save()
+        result["state"] = "success"
+        result["data"] = "商品添加成功"
+    else:
+        result["data"] = "请求错误"
+    return JsonResponse(result)
+
+
+
+

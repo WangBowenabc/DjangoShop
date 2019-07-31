@@ -9,8 +9,8 @@
 	<script type="text/javascript" src="/static/buyer/js/slide.js"></script>
 {% endblock %}
 {% block script %}
-<script type="text/javascript" src="js/slideshow.js"></script>
-	<script type="text/javascript">
+<script type="text/javascript" src="/static/buyer/js/slideshow.js"></script>
+	<script>
 		BCSlideshow('focuspic');
 		var oFruit = document.getElementById('fruit_more');
 		var oShownum = document.getElementById('show_count');
@@ -72,8 +72,8 @@
                 {% for goods in goods_type.goods_list %}
                     <li>
                         <h4><a href="#">{{ goods.goods_name}}</a></h4>
-                        <a href="#"><img src="/static/{{ goods.goods_image }}"></a>
-                        <div class="prize">{{ goods.goods_price }}</div>
+                        <a href="/Buyer/detail/?id={{ goods.id }}"><img src="/static/{{ goods.goods_image }}"></a>
+                        <div class="prize">￥{{ goods.goods_price }}</div>
                     </li>
                     {% endfor %}
 			</ul>

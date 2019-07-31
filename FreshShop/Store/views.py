@@ -1,10 +1,13 @@
 import hashlib
-
+from rest_framework import viewsets
+from rest_framework import serializers
+from Store.serializers import *
 from django.shortcuts import render
 from django.shortcuts import HttpResponseRedirect
 from django.core.paginator import Paginator
-from Store.models import *
 
+from Store.models import *
+from Buyer.models import *
 
 def loginValid(fun):
     def inner(request, *args, **kwargs):
@@ -133,9 +136,7 @@ def add_goods(request):
         goods.goods_type = goods_type
         goods.save()#保存生成了数据库当中的一条数据
         #多对多字段单独再保存一次数据
-        goods.store_id.add(
-            Store.objects.get(id=int(store_id))
-        )
+        goods.store_id=Store.objects.get(id=int(store_id))#*****
         goods.save()
         return HttpResponseRedirect("/Store/list_goods/up")
     return render(request, "store/add_goods.html",locals())
@@ -243,4 +244,61 @@ def delete_type(request):
     type_id=request.GET.get("id")
     type=GoodsType.objects.filter(id=type_id).delete()
     return HttpResponseRedirect('/Store/list_goodstype')
+'''
+订单状态：
+未支付   1
+待发货   2
+已发货   3
+已收货   4
+已退货   0
+取消订单 5
+'''
+def set_order(request,state):
+    if state=="no":
+        order_status=2
+    else:
+        order_status=3
+    id = request.GET.get("order_id")
+    referer=request.META.get("HTTP_REFERER")
+    if id:
+        order=OrderDetail.objects.filter(order_id__order_id=id,order_status=order_status).first()
+        if state=="delete":
+            order.delete()
+        elif state=="no":
+            order.order_status=3
+            order.save()
+        else:
+            order.order_status =5
+            order.save()
+    return HttpResponseRedirect(referer)
 
+def order_list(request,state):
+    if state == "no":
+        status_num = 2
+    else:
+        status_num = 3
+    store_id=request.COOKIES.get("has_store")
+    page_num = request.GET.get("page_num", 1)
+    order_list=OrderDetail.objects.filter(order_status=status_num,goods_store=store_id)
+    # 将查询出来的商品设置为每页最多显示3条信息
+    paginator = Paginator(order_list, 3)
+    # 选择页码对应的页
+    page = paginator.page(int(page_num))
+    page_range = paginator.page_range
+    return render(request,"store/order_list.html",locals())
+
+#ViewSets define the view behavior.
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = Goods.objects.all()#具体返回数据
+    serializer_class = UserSerializer#指定过滤的类
+
+
+class TypeViewSet(viewsets.ModelViewSet):
+    """
+    返回具体查询的内容
+    """
+    queryset = GoodsType.objects.all()
+    serializer_class = GoodsTypeSerializer
+
+def api_goods_list(request):
+    return render(request,"store/api_goods_list.html",locals())
