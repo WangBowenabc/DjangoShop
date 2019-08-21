@@ -9,7 +9,9 @@ class Address(models.Model):
     address=models.TextField(verbose_name="收货地址")
     recver=models.CharField(max_length=32,verbose_name="接收人")
     recver_number=models.CharField(max_length=32,verbose_name="邮编")
+    recver_phone=models.CharField(max_length=32,verbose_name="接收人电话",blank=True,null=True)
     buyer_id=models.ForeignKey(to=Buyer,on_delete=models.CASCADE,verbose_name="用户id")
+
 
     # Create your models here.
 class Order(models.Model):
@@ -27,7 +29,7 @@ class OrderDetail(models.Model):
     goods_number=models.IntegerField(verbose_name="商品购买数量")
     goods_total=models.FloatField(verbose_name="商品总价")
     goods_store=models.IntegerField(verbose_name="商品id")
-    goods_image=models.ImageField(default="static/buyer/images/goods.jpg",verbose_name="商品图片")
+    goods_image=models.ImageField(default="static/buyer/images/Store.jpg",verbose_name="商品图片")
 
 class Cart(models.Model):
     goods_name=models.CharField(max_length=32,verbose_name="商品名称")

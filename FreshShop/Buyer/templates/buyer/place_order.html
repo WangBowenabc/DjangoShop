@@ -11,9 +11,11 @@
 	<div class="common_list_con clearfix">
 		<dl>
 			<dt>寄送到：</dt>
-			<dd><input type="radio" name="" checked="">北京市 海淀区 东北旺西路8号中关村软件园 （李思 收） 182****7528</dd>
-		</dl>
-		<a href="user_center_site.html" class="edit_site">编辑收货地址</a>
+            {% for add in address_list %}
+			<dd><input type="radio" name="address" value={{ add.id }}checked="">{{ add.address }}&nbsp;&nbsp;{{ add.recver }}(收)&nbsp;&nbsp;{{ add.recver_phone }}</dd>
+		{% endfor %}
+        </dl>
+		<a href="/Buyer/user_site/" class="edit_site">编辑收货地址</a>
 
 	</div>
 

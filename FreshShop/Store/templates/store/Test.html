@@ -1,0 +1,22 @@
+{% load cache %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    {{ request.COOKIES.valid }}
+    {% if request.COOKIES.valid %}
+    <p>
+        有cookie
+    </p>
+    {% else %}
+    <p>没有cookie</p>
+    {% endif %}
+{#    模板碎片缓存：需要两个参数:缓存超过的时间和指定缓存片段的名称#}
+    {% cache 500 hsqcache %}#
+    <img src="http://img.mp.itc.cn/upload/20161110/18df5db70b2e46318295d2627b85b154_th.jpg">
+    {% endcache %}
+</body>
+</html>

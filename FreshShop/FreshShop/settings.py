@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
@@ -25,8 +24,7 @@ SECRET_KEY = 'p*&-1kr36fyi6vz0l26a-(oyodv*3c5dt%jwq0gz264pazqsm$'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -39,12 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Store',
     'Buyer',
-    'ckeditor',
-    'rest_framework',
+    'ckeditor',  # 富文本编辑器
+    'haystack',  # 全文检索框架
+    'djcelery',  #
+    'rest_framework',  # 接口框架
     'ckeditor_uploader'
 ]
 
 MIDDLEWARE = [
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -52,6 +53,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware'
+    # 'FreshShop.middleware.MiddlewearTest'
 ]
 
 ROOT_URLCONF = 'FreshShop.urls'
@@ -59,7 +62,7 @@ ROOT_URLCONF = 'FreshShop.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -74,7 +77,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'FreshShop.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
@@ -84,7 +86,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -104,37 +105,122 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
-
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS=(
-    os.path.join(BASE_DIR,"static"),
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, "static"),
 )
-MEDIA_URL="/media/"
-MEDIA_ROOT=os.path.join(BASE_DIR,"static")
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # STATIC_ROOT=os.path.join(BASE_DIR,"static")
-CKEDITOR_UPLOAD_PATH="static/upload"
-CKEDITOR_IMAGE_BACKEND="pillow"
-REST_FRAMEWORK={
-    'DEFAULT_PERMISSION_CLASSES':[
+CKEDITOR_UPLOAD_PATH = "static/upload"
+CKEDITOR_IMAGE_BACKEND = "pillow"
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
-    'DEFAULT_PAGINATION_CLASS':'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE':3
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 3,
+    'DEFAULT_RENDERER_CLASSES': (
+        'utils.rendererresponse.customrenderer',
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',  # django-filter自带的查询过滤器
+    )
 }
+# import djcelery #导入django-celery模块
+# djcelery.setup_loader()#进行模块加载
+# BROKER_URL='redis://127.0.0.1:6379/1'#任务容器地址，redis数据库地址
+# CELERY_IMPORTS=('CeleryTask.tasks')#具体任务文件
+# CELERY_TIMEZONE='Asia/Shanghai'#celery时区
+# CELERYBEAT_SCHEDULER='djcelery.schedulers.DatabaseScheduler'#celey处理器
+
+# celery 的定时器
+# from celery.schedules import crontab
+# from celery.schedules import timedelta
+# CELERYBEAT_SCHEDULE={#定时器策略
+#     #定时任务一：每隔30s运行一次
+#     u'测试定时器1':{
+#         "task":"CeleryTask.tasks.taskExample",
+#         #"schedule":crontab(minute='*/2'), #or 'schedule':timedelta(seconds)=3
+#         "schedule":timedelta(seconds=30),
+#         "args":(),
+#     },
+#     u'测试定时器2': {
+#         "task": "CeleryTask.tasks.DingTalk",
+#         # "schedule":crontab(minute='*/2'), #or 'schedule':timedelta(seconds)=3
+#         "schedule": timedelta(seconds=5),
+#         "args": (),
+#     },
+#
+#
+# }
+# The cache backends to use.     Anaconda/lib/site-package-django-conf
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#     }
+# }
+# CACHE_MIDDLEWARE_KEY_PREFIX = ''
+# CACHE_MIDDLEWARE_SECONDS = 600
+# CACHE_MIDDLEWARE_ALIAS = 'default'
+# The cache backends to use.
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+#         'LOCATION':[
+#             '127.0.0.1:11211'
+#         ]
+#     }
+# }
+# redis数据库中存放缓存
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION':[
+#             'redis://127.0.0.1:6379/1'
+#         ],
+#         'OPTIONS':{
+#                 'CLIENT_CLASS':'django_redis.client.DefaultClient'
+#         }
+#     }
+# }
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+#         'LOCATION':'cache_table'#存放缓存的表
+#     }
+# }
+CACHE_MIDDLEWARE_KEY_PREFIX = ''
+CACHE_MIDDLEWARE_SECONDS = 600
+# CACHE_MIDDLEWARE_ALIAS = 'default'
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        # 使用whoosh引擎
+        # 'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'ENGINE': 'haystack.backends.whoosh_cn_backend.WhooshEngine',
+        # 索引文件路径  whosh_index用来存放索引文件，
+        # 没有，但不需要建，会自动生成
+        'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+    }
+}
+# 当添加、修改、删除数据的时候，自动生成索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+#指定搜索页，每页显示的条数
+# HAYSTACK_SEARCH_RESULTS_PER_PAGE=1
+

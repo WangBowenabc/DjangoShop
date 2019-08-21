@@ -8,7 +8,7 @@ class Seller(models.Model):
     nickname=models.CharField(max_length=32,verbose_name="昵称",null=True,blank=True)
     phone=models.CharField(max_length=32,verbose_name="电话",null=True,blank=True)
     email=models.EmailField(verbose_name="邮箱",null=True,blank=True)
-    picture=models.ImageField(upload_to="static/images",verbose_name="用户头像",null=True,blank=True)
+    picture=models.ImageField(upload_to="store/images",verbose_name="用户头像",null=True,blank=True)
     address=models.CharField(max_length=32,verbose_name="地址",null=True,blank=True)
     card_id=models.CharField(max_length=32,verbose_name="身份证",null=True,blank=True)
 class StoreType(models.Model):
@@ -38,7 +38,7 @@ class Store(models.Model):
 class GoodsType(models.Model):
    name=models.CharField(max_length=32,verbose_name="商品类型名称")
    description=models.TextField(max_length=32,verbose_name="商品类型描述")
-   picture=models.ImageField(upload_to="buyer/images")
+   picture=models.ImageField(upload_to="store/images")
    # object=GoodsTypeManage()
 
 class Goods(models.Model):

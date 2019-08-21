@@ -9,44 +9,36 @@
 
 </div>
 {% block content %}
-    <table class="table table-bordered">
-        <thead>
-        <tr>
-            <th>订单编号</th>
-            <th>订单商品</th>
-            <th>订单金额</th>
-            <th>操作</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for order in order_list %}
-            <tr>
-                {#order_id 外键关系，第一个order_id为orderlist中的id， #}
-                {#orderlist中本身没有订单编号，所以通过外键关系去找Order中的order_id#}
-                <td>{{ order.order_id.order_id }}</td>
-                <td>{{ order.goods_name }}</td>
-                <td>{{ order.goods_total }}</td>
+    {% for order in order_list %}
+        <div class="list_model">
+        <table class="table table-bordered" style="width: 800px;height: 200px ;">
+            <tr class="fl" id="model01">
+                <td>订单编号:{{ order.order_id }}</td>
                 <td>
                     {% ifequal state 'no' %}
-                    <a href="/Store/set_order/no/?order_id={{order.order_id.order_id}}" class="btn btn-danger">确认发货</a>
-                    <a href="/Store/set_order/done/?id={{ goods.id}}" class="btn btn-facebook">拒绝发货</a>
-                    {% else%}
-                    <a href="/Store/set_order/delete/?order_id={{order.order_id.order_id}}" class="btn btn-primary">删除</a>
+                        <a href="/Store/set_orders/no/?id={{ order.order_id }}" class="btn btn-danger">拒绝发货</a>
+                        <a href="/Store/set_orders/down/?id={{ order.order_id }}" class="btn btn-danger">确认发货</a>
                     {% endifequal %}
+                    <a href="/Store/set_orders/delete/?id={{order.order_id }}" class="btn btn-facebook">删除订单</a>
                 </td>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <div class="dataTables_paginate paging_simple_numbers">
-        <ul class="pagination">
-            {% for p in page_range %}
-                <li class="pagination_button page-item">
-                    {#就算没有关键字也要提交一个关键字为空到后台#}
-                    <a class="page-link" href=?page_num={{ p }}">{{ p }}</a>
-                </li>
+            {#遍历显示查询出的前四条信息#}
+            {% for goods in or_list %}
+                {% for good in goods %}
+                    <tr>
+                        <td><a href="#">{{ good.goods_name }}</a></td>
+                        <td class="prize">￥{{ good.goods_price }}</td>
+                    </tr>
+                {% endfor %}
             {% endfor %}
-        </ul>
-
-    </div>
+        </table>
+    {% endfor %}
+<table class="dataTables_paginate paging_simple_numbers">
+    {% for p in page_range %}
+        <td class="pagination_button page-item">
+            {#就算没有关键字也要提交一个关键字为空到后台#}
+            <a class="page-link" href=?page_num={{ p }}">{{ p }}</a>
+        </td>
+    {% endfor %}
+</table>
 {% endblock %}

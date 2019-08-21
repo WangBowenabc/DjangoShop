@@ -9,8 +9,6 @@ from Store.views import set_password
 from Store.models import *
 
 from alipay import AliPay
-
-
 # Create your views here.
 # def base(request):
 #     return render(request,"buyer/base.html")
@@ -21,11 +19,9 @@ def loginValid(fun):
         if c_user and s_user and c_user == s_user:
             return fun(request, *args, **kwargs)
         else:
-            return HttpResponseRedirect("/Buyer/login")
+            return HttpResponseRedirect("/Store/login")
 
-    return inner
-
-
+    return inner###
 def login(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -35,13 +31,12 @@ def login(request):
             if user:
                 web_password = set_password(password)
                 if web_password == user.password:
-                    response = HttpResponseRedirect("/Buyer/index/")
+                    response = HttpResponseRedirect("/Store/index/")
                     response.set_cookie("username", username)
                     request.session["username"] = user.username
                     response.set_cookie("user_id", user.id)
                     return response
     return render(request, "buyer/login.html")
-
 def register(request):
     if request.method == "POST":
         username = request.POST.get("user_name")
@@ -52,10 +47,8 @@ def register(request):
         buyer.password = set_password(password)
         buyer.email = email
         buyer.save()
-        return HttpResponseRedirect("/Buyer/login/")
+        return HttpResponseRedirect("/Store/login/")
     return render(request, "buyer/register.html")
-
-
 @loginValid
 def index(request):
     #空列表用来存放类型的信息以及前端要展示的数据
@@ -76,9 +69,8 @@ def index(request):
             }
             result_list.append(goodsType)
     return render(request, "buyer/index.html", locals())
-
 def logout(request):
-    response = HttpResponseRedirect("/Buyer/login")
+    response = HttpResponseRedirect("/Store/login")
     for key in request.COOKIES:
         response.delete_cookie(key)
     del request.session["username"]
@@ -99,7 +91,6 @@ def good_list(request):
         goodsList = goods_type.goods_set.filter(goods_under=1)
         #将查询结果通过locals()传递到goos_list.html供其做前端数据渲染
     return render(request, "buyer/goods_list.html", locals())
-
 def pay_result(request):
     return render(request, "buyer/pay_result.html", locals())
 def pay_order(request):
@@ -125,8 +116,8 @@ def pay_order(request):
         out_trade_no=order_id,  # 订单号
         total_amount=str(money),
         subject="生鲜交易",
-        return_url="http://127.0.0.1:8000/Buyer/pay_result/",
-        notify_url="http://127.0.0.1:8000/Buyer/pay_result/"
+        return_url="http://127.0.0.1:8000/Store/pay_result/",
+        notify_url="http://127.0.0.1:8000/Store/pay_result/"
     )
     order=Order.objects.get(order_id=order_id)
     order.order_status=2
@@ -135,9 +126,26 @@ def pay_order(request):
 def user_order(request):
     return render(request,"buyer/user_center_order.html")
 def user_site(request):
-    return render(request,"buyer/user_center_site.html")
+    user_id = request.COOKIES.get("user_id")
+    address_list = Address.objects.filter(buyer_id_id=user_id)
+    if request.method=="POST":
+        recver=request.POST.get("recver")
+        addresss=request.POST.get("addresss")
+        recver_number=request.POST.get("recver_number")
+        user_id=request.COOKIES.get("user_id")
+        recver_phone=request.POST.get("recver_phone")
+        address=Address()
+        address.address=addresss
+        address.recver=recver
+        address.recver_number=recver_number
+        address.recver_phone = recver_phone
+        address.buyer_id=Buyer.objects.get(id=int(user_id))
+        address.save()
+    return render(request,"buyer/user_center_site.html",locals())
 def user_info(request):
-    return render(request,"buyer/user_center_info.html")
+    user_id=request.COOKIES.get("user_id")
+    buyer=Buyer.objects.get(id=user_id)
+    return render(request,"buyer/user_center_info.html",locals())
 def detail(request):
     # '''
     #    商品列表页的数据展示，显示对应类型的商品列表信息
@@ -146,7 +154,7 @@ def detail(request):
     # # 通过前端点击查看更多，传入该商品类型的id，type_id参数通过get方式传递到view
     # id = request.GET.get("id")
     # # 通过传入的type_id来查询该类型对象
-    # goods = Goods.objects.filter(id=id).first()
+    # Store = Goods.objects.filter(id=id).first()
     #
     # return render(request,"buyer/detail.html",locals())
     id = request.GET.get("id")
@@ -161,6 +169,8 @@ def setOrder(user_id,goods_id,store_id):
     order_id=strtime+str(user_id)+str(goods_id)
     return order_id
 def place_order(request):
+    user_id=request.COOKIES.get("user_id")
+    address_list=Address.objects.filter(buyer_id_id=user_id)
     if request.method=="POST":
         count=int(request.POST.get("count"))
         goods_id=request.POST.get("goods_id")
@@ -198,8 +208,14 @@ def place_order(request):
 def cart(request):
     user_id=request.COOKIES.get("user_id")
     goods_list=Cart.objects.filter(user_id=user_id)
+    goods_pricetotal = sum([int(i.goods_price) for i in goods_list])
+    goods_numbers=[]
+    for x in goods_list:
+        goods_numbers.append(x.goods_number)
+    goods_number=len(goods_numbers)
     if request.method=="POST":
         post_data=request.POST
+        print(post_data)
         cart_data=[]#收集从前端传递过来的商品
         for k,v in post_data.items():
             if k.startswith("goods_"):
@@ -239,7 +255,7 @@ def cart(request):
             order_detail.goods_image=detail.goods_picture
             order_detail.save()
             #order 是一条订单支付页
-        url="/Buyer/place_order/?order_id=%s"%order.id
+        url="/Store/place_order/?order_id=%s"%order.id
         return HttpResponseRedirect(url)
     return render(request,"buyer/cart.html",locals())
 def add_cart(request):
@@ -264,6 +280,43 @@ def add_cart(request):
     else:
         result["data"] = "请求错误"
     return JsonResponse(result)
+def user_center_order(request):
+    """
+    1.先获取到当前用户
+    2.根据用户查到订单消息
+    3.根据订单编号查询到应订单详情
+
+    """
+    orderdetail_list=[]
+    userid=request.COOKIES.get("user_id")
+    order=Order.objects.filter(order_user_id=userid)
+    print(order)
+    for i in order:
+        orderdetaillist=i.orderdetail_set.all()
+        orderdetail_list.append(orderdetaillist)
+    return render(request,"buyer/user_center_order.html",locals())
+# 列表页
+
+# def list_view(request):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

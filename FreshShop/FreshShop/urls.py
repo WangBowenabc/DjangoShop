@@ -23,7 +23,7 @@ from rest_framework import routers
 
 
 router=routers.DefaultRouter()
-router.register(r"goods",UserViewSet)
+router.register(r"Store",UserViewSet)
 router.register(r"goodsType",TypeViewSet)#注册写好的接口视图
 
 urlpatterns = [
@@ -31,8 +31,11 @@ urlpatterns = [
     path('Store/', include("Store.urls")),
     path('Buyer/', include("Buyer.urls")),
     path('ckeditor/',include('ckeditor_uploader.urls')),
+    path('search/', include('haystack.urls')),  # 全文检索框架
     re_path('^API',include(router.urls)),#restful的根路由
-    re_path('^api-auth',include('rest_framework.urls'))#接口认证
+    re_path('^api-auth',include('rest_framework.urls')),#接口认证
+
+
 ]
 urlpatterns+=[
     re_path(r'^$',index)

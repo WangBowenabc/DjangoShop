@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include,re_path
 from Buyer.views import *
 
 urlpatterns = [
@@ -12,9 +12,11 @@ urlpatterns = [
     path('user_site/', user_site),
     path('user_info/', user_info),
     path('place_order/', place_order),
+    path('uco/', user_center_order),
     path('cart/', cart),
     path('add_cart/', add_cart),
     path('detail/', detail),
+
 
 ]
 urlpatterns += [
